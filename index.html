@@ -162,6 +162,9 @@
     min-width: 150px;
   }
   .bama-team img{ width:96px; height:96px; object-fit:contain; filter:drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
+  .bama-logo-link{ display:inline-block; line-height:0; transition: transform .15s ease; border-radius:50%; }
+  .bama-logo-link:hover{ transform: scale(1.06); }
+  .bama-logo-link:hover img{ filter:drop-shadow(0 8px 14px rgba(0,0,0,.35)); }
   .bama-team .name{ font-weight:800; font-size:1.15rem; text-align:center; }
   .bama-team .rank{
     font-size:.75rem; font-weight:800; color: var(--accent);
@@ -262,6 +265,13 @@
     padding: 16px;
     box-shadow: var(--shadow);
     display:flex; flex-direction:column; gap:10px;
+    text-decoration:none;
+    color: inherit;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .game-card:hover{
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--card-border));
   }
   .game-badges{ display:flex; gap:6px; flex-wrap:wrap; }
   .badge{
@@ -557,6 +567,13 @@ function venueText(comp){
   const city = v.address ? [v.address.city, v.address.state].filter(Boolean).join(', ') : '';
   return v.fullName + (city ? ' — ' + city : '');
 }
+function gameLink(event){
+  if(event.links && event.links.length){
+    const summary = event.links.find(l => l.rel && l.rel.includes('summary')) || event.links[0];
+    if(summary && summary.href) return summary.href;
+  }
+  return `https://www.espn.com/college-football/game/_/gameId/${event.id}`;
+}
 function leaderLine(team){
   if(!team.leaders || !team.leaders.length) return null;
   const wanted = ['passingLeader','rushingLeader','receivingLeader'];
@@ -592,6 +609,7 @@ function renderBama(event){
   const kickoff = new Date(event.date);
   const odds = oddsText(comp);
   const oppLeaders = leaderLine(opp);
+  const link = gameLink(event);
   const state = event.status && event.status.type ? event.status.type.state : 'pre';
   const isLive = state === 'in';
   const isFinal = state === 'post';
@@ -615,7 +633,9 @@ function renderBama(event){
     <div class="bama-eyebrow">${isLive ? '<span class="pulse-dot"></span>' : ''}${eyebrowText}</div>
     <div class="bama-matchup">
       <div class="bama-team">
-        <img src="${away.team.logo}" alt="${away.team.displayName} logo">
+        <a class="bama-logo-link" href="${link}" target="_blank" rel="noopener noreferrer" title="View game on ESPN">
+          <img src="${away.team.logo}" alt="${away.team.displayName} logo">
+        </a>
         <div class="name">${away.team.shortDisplayName || away.team.displayName}</div>
         ${rankOf(away) ? `<div class="rank">#${rankOf(away)}</div>` : ''}
         ${scoreLine(away)}
@@ -624,7 +644,9 @@ function renderBama(event){
         <div>${comp.neutralSite ? 'VS' : '@'}</div>
       </div>
       <div class="bama-team">
-        <img src="${home.team.logo}" alt="${home.team.displayName} logo">
+        <a class="bama-logo-link" href="${link}" target="_blank" rel="noopener noreferrer" title="View game on ESPN">
+          <img src="${home.team.logo}" alt="${home.team.displayName} logo">
+        </a>
         <div class="name">${home.team.shortDisplayName || home.team.displayName}</div>
         ${rankOf(home) ? `<div class="rank">#${rankOf(home)}</div>` : ''}
         ${scoreLine(home)}
@@ -696,7 +718,7 @@ function gameCard(event){
   if(event._isSec) badges.push('<span class="badge sec">SEC</span>');
 
   return `
-    <div class="game-card">
+    <a class="game-card" href="${gameLink(event)}" target="_blank" rel="noopener noreferrer">
       <div class="game-badges">${badges.join('')}</div>
       <div class="card-matchup">
         <div class="card-team">
@@ -719,7 +741,7 @@ function gameCard(event){
         <div class="line tv-row">${broadcastHtml(comp)}</div>
         ${odds ? `<div class="line odds-line">💰 <b>${odds}</b></div>` : ''}
       </div>
-    </div>
+    </a>
   `;
 }
 
@@ -734,7 +756,7 @@ function liveGameCard(event){
   if(event._isSec) badges.push('<span class="badge sec">SEC</span>');
 
   return `
-    <div class="game-card live-card">
+    <a class="game-card live-card" href="${gameLink(event)}" target="_blank" rel="noopener noreferrer">
       <div class="game-badges">${badges.join('')}</div>
       <div class="card-matchup">
         <div class="card-team">
@@ -757,7 +779,7 @@ function liveGameCard(event){
         <div class="line tv-row">${broadcastHtml(comp)}</div>
         ${odds ? `<div class="line odds-line">💰 <b>${odds}</b></div>` : ''}
       </div>
-    </div>
+    </a>
   `;
 }
 
