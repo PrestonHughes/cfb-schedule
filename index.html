@@ -357,6 +357,51 @@
     color: var(--bad); background: var(--card); padding:0 4px; border-radius:4px; white-space:nowrap;
   }
 
+  /* ---------- ROSTER ---------- */
+  #roster-section{ margin-bottom: 36px; }
+  .roster-controls{ display:flex; gap:10px; margin-bottom:16px; }
+  .sort-btn.active{ background: var(--accent); border-color: var(--accent); color:#fff; }
+
+  .roster-list{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+    align-items:start;
+  }
+  .roster-row{
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    overflow:hidden;
+  }
+  .roster-row-header{
+    display:flex; align-items:center; gap:12px;
+    padding: 10px 14px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .roster-jersey{
+    font-weight:900; font-size:.95rem;
+    min-width:34px; text-align:center;
+    background: var(--pill-bg);
+    border-radius:8px;
+    padding:4px 6px;
+    flex: 0 0 auto;
+  }
+  .roster-name{ font-weight:600; font-size:.9rem; flex:1; }
+  .roster-caret{ color: var(--text-dim); font-size:.75rem; transition: transform .15s ease; flex: 0 0 auto; }
+  .roster-row.expanded .roster-caret{ transform: rotate(180deg); }
+  .roster-details{
+    display:none;
+    flex-wrap:wrap;
+    gap: 6px 18px;
+    padding: 0 14px 12px 60px;
+    font-size:.8rem;
+    color: var(--text-dim);
+  }
+  .roster-row.expanded .roster-details{ display:flex; }
+  .roster-details b{ color: var(--text); font-weight:700; }
+
   footer{ text-align:center; color: var(--text-dim); font-size:.75rem; margin-top: 40px; }
 
   @media (max-width: 640px){
@@ -421,6 +466,16 @@
     <h2 class="section-title">📺 TV Viewing Guide</h2>
     <div class="sub">Every game of interest, laid out by channel and kickoff time</div>
     <div id="tv-chart"></div>
+  </section>
+
+  <section id="roster-section">
+    <h2 class="section-title">Alabama Roster</h2>
+    <div class="sub">Tap a player for position, height, and weight</div>
+    <div class="roster-controls">
+      <button class="btn sort-btn active" id="sort-jersey" data-sort="jersey">Sort by Number</button>
+      <button class="btn sort-btn" id="sort-name" data-sort="name">Sort by Name</button>
+    </div>
+    <div class="roster-list" id="roster-list"></div>
   </section>
 
   <footer>Data via ESPN. Refresh with the Update button — this page makes no server calls of its own.</footer>
@@ -508,6 +563,138 @@ function rankOf(competitor){
   return (competitor.curatedRank && competitor.curatedRank.current && competitor.curatedRank.current <= 25) ? competitor.curatedRank.current : null;
 }
 function isTop25(competitor){ return rankOf(competitor) !== null; }
+
+// Alabama's full-season roster, captured once from ESPN (rosters lock in for the season).
+const ALABAMA_ROSTER = [
+  {"name":"John Cooper","jersey":"19","position":"QB","height":"6' 2\"","weight":"205 lbs"},
+  {"name":"John Gazzaniga","jersey":"13","position":"QB","height":"6' 7\"","weight":"241 lbs"},
+  {"name":"Tayden-Evan Kaawa","jersey":"11","position":"QB","height":"6' 5\"","weight":"238 lbs"},
+  {"name":"Austin Mack","jersey":"10","position":"QB","height":"6' 6\"","weight":"237 lbs"},
+  {"name":"Keelon Russell","jersey":"12","position":"QB","height":"6' 3\"","weight":"207 lbs"},
+  {"name":"Jett Thomalla","jersey":"15","position":"QB","height":"6' 4\"","weight":"229 lbs"},
+  {"name":"Trae'shawn Brown","jersey":"17","position":"RB","height":"5' 10\"","weight":"206 lbs"},
+  {"name":"EJ Crowell","jersey":"13","position":"RB","height":"5' 11\"","weight":"224 lbs"},
+  {"name":"AK Dear","jersey":"0","position":"RB","height":"6' 1\"","weight":"216 lbs"},
+  {"name":"Daniel Hill","jersey":"4","position":"RB","height":"6' 1\"","weight":"234 lbs"},
+  {"name":"Jaron Jackson","jersey":"29","position":"RB","height":"5' 11\"","weight":"170 lbs"},
+  {"name":"Khalifa Keith","jersey":"20","position":"RB","height":"6' 1\"","weight":"232 lbs"},
+  {"name":"Fredrick Moore","jersey":"29","position":"RB","height":"5' 9\"","weight":"170 lbs"},
+  {"name":"Kevin Riley","jersey":"6","position":"RB","height":"5' 11\"","weight":"198 lbs"},
+  {"name":"J'Alan Terry","jersey":"25","position":"RB","height":"6' 0\"","weight":"190 lbs"},
+  {"name":"TC Washington","jersey":"36","position":"RB","height":"5' 11\"","weight":"220 lbs"},
+  {"name":"Lotzeir Brooks","jersey":"3","position":"WR","height":"5' 9\"","weight":"197 lbs"},
+  {"name":"MJ Chirgwin","jersey":"23","position":"WR","height":"6' 0\"","weight":"195 lbs"},
+  {"name":"Ryan Coleman-Williams","jersey":"1","position":"WR","height":"6' 0\"","weight":"184 lbs"},
+  {"name":"Tailan Hall","jersey":"37","position":"WR","height":"5' 11\"","weight":"180 lbs"},
+  {"name":"Tyler Henderson","jersey":"14","position":"WR","height":"6' 1\"","weight":"177 lbs"},
+  {"name":"Ben Jackson","jersey":"42","position":"WR","height":"6' 2\"","weight":"165 lbs"},
+  {"name":"Preston Landry","jersey":"33","position":"WR","height":"6' 4\"","weight":"210 lbs"},
+  {"name":"Maurice Mathis Jr.","jersey":"21","position":"WR","height":"6' 1\"","weight":"198 lbs"},
+  {"name":"Derek Meadows","jersey":"30","position":"WR","height":"6' 5\"","weight":"212 lbs"},
+  {"name":"Cooper Mollison","jersey":"31","position":"WR","height":"5' 10\"","weight":"177 lbs"},
+  {"name":"Cederian Morgan","jersey":"8","position":"WR","height":"6' 4\"","weight":"222 lbs"},
+  {"name":"Elijah Murray","jersey":"27","position":"WR","height":"5' 11\"","weight":"185 lbs"},
+  {"name":"Noah Rogers","jersey":"5","position":"WR","height":"6' 2\"","weight":"206 lbs"},
+  {"name":"Warner Ross","jersey":"83","position":"WR","height":"5' 10\"","weight":"183 lbs"},
+  {"name":"Amari Sabb","jersey":"24","position":"WR","height":"5' 9\"","weight":"155 lbs"},
+  {"name":"Rico Scott","jersey":"7","position":"WR","height":"6' 0\"","weight":"203 lbs"},
+  {"name":"Aubrey Walker","jersey":"26","position":"WR","height":"5' 10\"","weight":"170 lbs"},
+  {"name":"Jude Cascone","jersey":"86","position":"TE","height":"6' 3\"","weight":"224 lbs"},
+  {"name":"Kaleb Edwards","jersey":"81","position":"TE","height":"6' 6\"","weight":"264 lbs"},
+  {"name":"Josh Ford","jersey":"40","position":"TE","height":"6' 6\"","weight":"266 lbs"},
+  {"name":"Peyton Fox","jersey":"46","position":"TE","height":"6' 4\"","weight":"235 lbs"},
+  {"name":"Danny Lewis Jr.","jersey":"87","position":"TE","height":"6' 5\"","weight":"260 lbs"},
+  {"name":"Jay Lindsey","jersey":"88","position":"TE","height":"6' 5\"","weight":"258 lbs"},
+  {"name":"Marshall Pritchett","jersey":"9","position":"TE","height":"6' 5\"","weight":"246 lbs"},
+  {"name":"Jack Sammarco","jersey":"85","position":"TE","height":"6' 5\"","weight":"268 lbs"},
+  {"name":"Jaxon Shuttlesworth","jersey":"80","position":"TE","height":"6' 5\"","weight":"235 lbs"},
+  {"name":"Mack Sutter","jersey":"18","position":"TE","height":"6' 5\"","weight":"248 lbs"},
+  {"name":"Chris Booker","jersey":"73","position":"OL","height":"6' 4\"","weight":"288 lbs"},
+  {"name":"Nick Brooks","jersey":"71","position":"OL","height":"6' 7\"","weight":"333 lbs"},
+  {"name":"Michael Carroll","jersey":"64","position":"OL","height":"6' 6\"","weight":"324 lbs"},
+  {"name":"Bryson Cooley","jersey":"63","position":"OL","height":"6' 6\"","weight":"328 lbs"},
+  {"name":"Racin Delgatty","jersey":"55","position":"OL","height":"6' 3\"","weight":"305 lbs"},
+  {"name":"Ethan Fields","jersey":"75","position":"OL","height":"6' 3\"","weight":"313 lbs"},
+  {"name":"Bear Fretwell","jersey":"57","position":"OL","height":"6' 7\"","weight":"305 lbs"},
+  {"name":"Jared Graham","jersey":"66","position":"OL","height":"6' 6\"","weight":"300 lbs"},
+  {"name":"Ty Haywood","jersey":"72","position":"OL","height":"6' 5\"","weight":"318 lbs"},
+  {"name":"Baker Hickman","jersey":"69","position":"OL","height":"6' 3\"","weight":"334 lbs"},
+  {"name":"Jayvin James","jersey":"54","position":"OL","height":"6' 5\"","weight":"317 lbs"},
+  {"name":"Jackson Lloyd","jersey":"77","position":"OL","height":"6' 7\"","weight":"326 lbs"},
+  {"name":"JD Martin","jersey":"59","position":"OL","height":"6' 2\"","weight":"266 lbs"},
+  {"name":"Tyrell Miller","jersey":"65","position":"OL","height":"6' 5\"","weight":"312 lbs"},
+  {"name":"Davis Peterson","jersey":"62","position":"OL","height":"6' 1\"","weight":"268 lbs"},
+  {"name":"Casey Poe","jersey":"50","position":"OL","height":"6' 4\"","weight":"328 lbs"},
+  {"name":"Billy Roby","jersey":"68","position":"OL","height":"5' 11\"","weight":"280 lbs"},
+  {"name":"William Sanders","jersey":"70","position":"OL","height":"6' 3\"","weight":"321 lbs"},
+  {"name":"Mac Smith","jersey":"53","position":"OL","height":"6' 3\"","weight":"300 lbs"},
+  {"name":"Kaden Strayhorn","jersey":"79","position":"OL","height":"6' 2\"","weight":"310 lbs"},
+  {"name":"Mal Waldrep Jr.","jersey":"52","position":"OL","height":"6' 5\"","weight":"324 lbs"},
+  {"name":"Jeremiah Beaman","jersey":"92","position":"DL","height":"6' 4\"","weight":"301 lbs"},
+  {"name":"Kedrick Bingley-Jones","jersey":"22","position":"DL","height":"6' 4\"","weight":"302 lbs"},
+  {"name":"Leslie Black","jersey":"95","position":"DL","height":"6' 5\"","weight":"290 lbs"},
+  {"name":"Isaia Faga","jersey":"88","position":"DL","height":"6' 2\"","weight":"291 lbs"},
+  {"name":"Malique Franklin","jersey":"93","position":"DL","height":"6' 6\"","weight":"275 lbs"},
+  {"name":"Terrance Green","jersey":"99","position":"DL","height":"6' 5\"","weight":"313 lbs"},
+  {"name":"Fatutoa Henry","jersey":"14","position":"DL","height":"6' 4\"","weight":"272 lbs"},
+  {"name":"Edric Hill","jersey":"94","position":"DL","height":"6' 3\"","weight":"292 lbs"},
+  {"name":"Corey Howard Jr.","jersey":"32","position":"DL","height":"6' 6\"","weight":"288 lbs"},
+  {"name":"Mhari Johnson","jersey":"26","position":"DL","height":"6' 3\"","weight":"290 lbs"},
+  {"name":"Steve Bolo Mboumoua","jersey":"25","position":"DL","height":"6' 4\"","weight":"303 lbs"},
+  {"name":"London Simmons","jersey":"90","position":"DL","height":"6' 3\"","weight":"300 lbs"},
+  {"name":"Caleb Smith","jersey":"91","position":"DL","height":"6' 5\"","weight":"280 lbs"},
+  {"name":"Devan Thompkins","jersey":"1","position":"DL","height":"6' 5\"","weight":"300 lbs"},
+  {"name":"Josh Underwood","jersey":"97","position":"DL","height":"6' 2\"","weight":"315 lbs"},
+  {"name":"Nolan Wilson","jersey":"44","position":"DL","height":"6' 5\"","weight":"285 lbs"},
+  {"name":"Torin Craig","jersey":"40","position":"LB","height":"6' 2\"","weight":"180 lbs"},
+  {"name":"Xavier Griffin","jersey":"11","position":"LB","height":"6' 3\"","weight":"228 lbs"},
+  {"name":"Zay Hall","jersey":"34","position":"LB","height":"6' 3\"","weight":"236 lbs"},
+  {"name":"Justin Hill","jersey":"8","position":"LB","height":"6' 3\"","weight":"245 lbs"},
+  {"name":"Jake Ivie","jersey":"39","position":"LB","height":"6' 0\"","weight":"188 lbs"},
+  {"name":"Duke Johnson II","jersey":"15","position":"LB","height":"6' 1\"","weight":"233 lbs"},
+  {"name":"Cayden Jones","jersey":"23","position":"LB","height":"6' 4\"","weight":"233 lbs"},
+  {"name":"Jah-Marien Latham","jersey":"20","position":"LB","height":"6' 3\"","weight":"273 lbs"},
+  {"name":"Jamarion Matthews","jersey":"41","position":"LB","height":"6' 2\"","weight":"254 lbs"},
+  {"name":"Luke Metz","jersey":"4","position":"LB","height":"6' 3\"","weight":"235 lbs"},
+  {"name":"Bubba Odom","jersey":"30","position":"LB","height":"6' 4\"","weight":"240 lbs"},
+  {"name":"Yhonzae Pierre","jersey":"0","position":"LB","height":"6' 3\"","weight":"251 lbs"},
+  {"name":"QB Reese","jersey":"36","position":"LB","height":"6' 0\"","weight":"230 lbs"},
+  {"name":"Abduall Sanders Jr.","jersey":"35","position":"LB","height":"6' 2\"","weight":"231 lbs"},
+  {"name":"Desmond Umeozulu","jersey":"9","position":"LB","height":"6' 6\"","weight":"255 lbs"},
+  {"name":"Lane Whisenhunt","jersey":"82","position":"LB","height":"6' 2\"","weight":"225 lbs"},
+  {"name":"Caleb Woodson","jersey":"7","position":"LB","height":"6' 3\"","weight":"240 lbs"},
+  {"name":"Zabien Brown","jersey":"2","position":"DB","height":"6' 0\"","weight":"194 lbs"},
+  {"name":"Jorden Edmonds","jersey":"16","position":"DB","height":"6' 3\"","weight":"190 lbs"},
+  {"name":"Jireh Edwards","jersey":"10","position":"DB","height":"6' 2\"","weight":"218 lbs"},
+  {"name":"George French II","jersey":"31","position":"DB","height":"6' 1\"","weight":"195 lbs"},
+  {"name":"Camryn Gable","jersey":"43","position":"DB","height":"5' 10\"","weight":"170 lbs"},
+  {"name":"Zyan Gibson","jersey":"17","position":"DB","height":"6' 0\"","weight":"195 lbs"},
+  {"name":"Griffin Hanson","jersey":"32","position":"DB","height":"5' 10\"","weight":"177 lbs"},
+  {"name":"London Hill","jersey":"34","position":"DB","height":"5' 11\"","weight":"185 lbs"},
+  {"name":"Bray Hubbard","jersey":"18","position":"DB","height":"6' 2\"","weight":"215 lbs"},
+  {"name":"Rihyael Kelley","jersey":"24","position":"DB","height":"6' 3\"","weight":"205 lbs"},
+  {"name":"Dre Kirkpatrick Jr.","jersey":"21","position":"DB","height":"5' 11\"","weight":"207 lbs"},
+  {"name":"Dijon Lee Jr.","jersey":"5","position":"DB","height":"6' 4\"","weight":"202 lbs"},
+  {"name":"Brody McCutcheon","jersey":"38","position":"DB","height":"6' 1\"","weight":"180 lbs"},
+  {"name":"Chuck McDonald III","jersey":"19","position":"DB","height":"6' 1\"","weight":"199 lbs"},
+  {"name":"Zavier Mincey","jersey":"12","position":"DB","height":"6' 3\"","weight":"206 lbs"},
+  {"name":"Red Morgan","jersey":"6","position":"DB","height":"6' 0\"","weight":"191 lbs"},
+  {"name":"Carmelo O'Neal","jersey":"28","position":"DB","height":"6' 4\"","weight":"210 lbs"},
+  {"name":"Keon Sabb","jersey":"3","position":"DB","height":"6' 1\"","weight":"205 lbs"},
+  {"name":"Walter Sansing III","jersey":"27","position":"DB","height":"5' 10\"","weight":"182 lbs"},
+  {"name":"Nick Sherman","jersey":"29","position":"DB","height":"6' 3\"","weight":"201 lbs"},
+  {"name":"Ivan Taylor","jersey":"13","position":"DB","height":"6' 0\"","weight":"198 lbs"},
+  {"name":"Tucker Cornelius","jersey":"98","position":"PK","height":"6' 3\"","weight":"207 lbs"},
+  {"name":"Lorcan Quinn","jersey":"90","position":"PK","height":"6' 1\"","weight":"196 lbs"},
+  {"name":"Conor Talty","jersey":"31","position":"PK","height":"6' 1\"","weight":"201 lbs"},
+  {"name":"Alex Asparuhov","jersey":"32","position":"P","height":"6' 3\"","weight":"202 lbs"},
+  {"name":"Anderson Green","jersey":"95","position":"P","height":"6' 0\"","weight":"201 lbs"},
+  {"name":"Adam Watford","jersey":"33","position":"P","height":"5' 11\"","weight":"188 lbs"},
+  {"name":"Eli Deutsch","jersey":"47","position":"LS","height":"6' 2\"","weight":"225 lbs"},
+  {"name":"Alex Rozier","jersey":"55","position":"LS","height":"6' 4\"","weight":"215 lbs"},
+  {"name":"Ethan Stangle","jersey":"61","position":"LS","height":"6' 1\"","weight":"219 lbs"},
+  {"name":"Jay Williams","jersey":"45","position":"LS","height":"6' 0\"","weight":"210 lbs"}
+];
 
 const NETWORK_LOGOS = {
   'ESPN': 'https://a.espncdn.com/guid/335fd2d2-97b9-336b-81ee-573eb6bdcffc/logos/default.png',
@@ -1000,6 +1187,47 @@ async function loadSchedule(){
 
 document.getElementById('update-btn').addEventListener('click', loadSchedule);
 loadSchedule();
+
+// ---------- Roster ----------
+let rosterSort = 'jersey';
+
+function renderRoster(){
+  const list = document.getElementById('roster-list');
+  const sorted = [...ALABAMA_ROSTER].sort((a, b) => {
+    if(rosterSort === 'jersey') return (parseInt(a.jersey, 10) || 0) - (parseInt(b.jersey, 10) || 0);
+    return a.name.localeCompare(b.name);
+  });
+
+  list.innerHTML = sorted.map(p => `
+    <div class="roster-row">
+      <div class="roster-row-header">
+        <div class="roster-jersey">#${p.jersey}</div>
+        <div class="roster-name">${p.name}</div>
+        <div class="roster-caret">▾</div>
+      </div>
+      <div class="roster-details">
+        <div><b>Pos</b> ${p.position}</div>
+        <div><b>Height</b> ${p.height}</div>
+        <div><b>Weight</b> ${p.weight}</div>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.roster-row-header').forEach(header => {
+    header.addEventListener('click', () => header.parentElement.classList.toggle('expanded'));
+  });
+}
+
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    rosterSort = btn.dataset.sort;
+    renderRoster();
+  });
+});
+
+renderRoster();
 </script>
 
 </body>
