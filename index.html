@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alabama &amp; CFB Weekend Watch</title>
+
+<!-- PWA / "Add to Home Screen" support -->
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiQ0ZCIFdlZWtlbmQgV2F0Y2giLCJzaG9ydF9uYW1lIjoiQ0ZCIFdhdGNoIiwiZGVzY3JpcHRpb24iOiJBbGFiYW1hIGFuZCB0b3AgY29sbGVnZSBmb290YmFsbCB3ZWVrZW5kIHNjaGVkdWxlLCBUViBndWlkZSwgYW5kIGNvdW50ZG93biIsInN0YXJ0X3VybCI6Ii4vaW5kZXguaHRtbCIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwib3JpZW50YXRpb24iOiJwb3J0cmFpdCIsImJhY2tncm91bmRfY29sb3IiOiIjMGQwZjE0IiwidGhlbWVfY29sb3IiOiIjOWUxYjMyIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vYS5lc3BuY2RuLmNvbS9pL3RlYW1sb2dvcy9uY2FhLzUwMC8zMzMucG5nIiwic2l6ZXMiOiI1MDB4NTAwIiwidHlwZSI6ImltYWdlL3BuZyIsInB1cnBvc2UiOiJhbnkifSx7InNyYyI6Imh0dHBzOi8vYS5lc3BuY2RuLmNvbS9pL3RlYW1sb2dvcy9uY2FhLzUwMC8zMzMucG5nIiwic2l6ZXMiOiI1MDB4NTAwIiwidHlwZSI6ImltYWdlL3BuZyIsInB1cnBvc2UiOiJtYXNrYWJsZSJ9XX0=">
+<meta name="theme-color" content="#9e1b32">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CFB Watch">
+<link rel="apple-touch-icon" href="https://a.espncdn.com/i/teamlogos/ncaa/500/333.png">
+<link rel="icon" href="https://a.espncdn.com/i/teamlogos/ncaa/500/333.png">
+
+<style>
+  :root{
+    --bg: #f2f4f8;
+    --bg-alt: #ffffff;
+    --card: #ffffff;
+    --card-border: #dde2ea;
+    --text: #14171f;
+    --text-dim: #565f70;
+    --accent: #9e1b32;
+    --accent-2: #828a8f;
+    --shadow: 0 8px 24px rgba(20,23,31,0.08);
+    --pill-bg: #eef1f6;
+    --good: #1a7d4a;
+    --bad: #b0272f;
+  }
+  html[data-theme="dark"]{
+    --bg: #0d0f14;
+    --bg-alt: #14171f;
+    --card: #181b24;
+    --card-border: #262b38;
+    --text: #f0f2f6;
+    --text-dim: #9aa2b3;
+    --accent: #e8394f;
+    --accent-2: #a7afc0;
+    --shadow: 0 8px 28px rgba(0,0,0,0.45);
+    --pill-bg: #20242f;
+    --good: #35c976;
+    --bad: #ff5964;
+  }
+  *{box-sizing:border-box;}
+  html{ overflow-x:hidden; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    transition: background .25s ease, color .25s ease;
+    padding-bottom: 48px;
+    overflow-x:hidden;
+    width:100%;
+  }
+  a{color:inherit;}
+
+  header{
+    position: sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 14px 24px;
+    background: var(--bg-alt);
+    border-bottom: 1px solid var(--card-border);
+    box-shadow: var(--shadow);
+  }
+  header .brand{
+    display:flex; align-items:center; gap:10px;
+    font-weight:800; font-size:1.15rem; letter-spacing:.2px;
+  }
+  header .brand .dot{
+    width:10px; height:10px; border-radius:50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  header .controls{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:flex-end; }
+  .updated-label{ font-size:.75rem; color: var(--text-dim); white-space:nowrap; }
+
+  button.btn{
+    border: 1px solid var(--card-border);
+    background: var(--pill-bg);
+    color: var(--text);
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-weight:600;
+    font-size:.85rem;
+    cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+    transition: transform .12s ease, background .2s ease;
+  }
+  button.btn:hover{ transform: translateY(-1px); background: var(--card-border); }
+  button.btn:active{ transform: translateY(0); }
+  button.btn:disabled{ opacity:.6; cursor:default; transform:none; }
+  .spin{
+    width:14px; height:14px; border-radius:50%;
+    border: 2px solid color-mix(in srgb, var(--text) 30%, transparent);
+    border-top-color: var(--text);
+    animation: spin 0.7s linear infinite;
+    display:none;
+  }
+  .spin.active{ display:inline-block; }
+  @keyframes spin{ to{ transform: rotate(360deg);} }
+
+  .theme-toggle{
+    width:52px; height:30px; border-radius:999px;
+    background: var(--pill-bg);
+    border:1px solid var(--card-border);
+    position:relative; cursor:pointer;
+  }
+  .theme-toggle .knob{
+    position:absolute; top:2px; left:2px;
+    width:24px; height:24px; border-radius:50%;
+    background: var(--accent);
+    transition: left .2s ease;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px;
+  }
+  html[data-theme="dark"] .theme-toggle .knob{ left: 24px; }
+
+  main{ max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  #status-banner{
+    text-align:center; padding: 40px 20px; color: var(--text-dim);
+  }
+  #status-banner.error{ color: var(--bad); }
+
+  /* ---------- ALABAMA HERO ---------- */
+  #bama-section{
+    display:none;
+    background: linear-gradient(160deg, var(--card) 0%, color-mix(in srgb, var(--accent) 14%, var(--card)) 100%);
+    border: 1px solid var(--card-border);
+    border-radius: 22px;
+    padding: 28px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    min-height: 33vh;
+  }
+  #bama-section::before{
+    content:"";
+    position:absolute; inset:0;
+    background: radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%);
+    pointer-events:none;
+  }
+  .bama-eyebrow{
+    display:flex; align-items:center; gap:8px;
+    text-transform:uppercase; letter-spacing:1.5px; font-size:.75rem;
+    color: var(--accent); font-weight:800; margin-bottom: 14px;
+  }
+  .bama-eyebrow::before{ content:"🏈"; }
+
+  .bama-matchup{
+    display:flex; align-items:center; justify-content:center; gap:28px;
+    flex-wrap:wrap;
+    margin-bottom: 22px;
+  }
+  .bama-team{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    min-width: 150px;
+  }
+  .bama-team img{ width:96px; height:96px; object-fit:contain; filter:drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
+  .bama-team .name{ font-weight:800; font-size:1.15rem; text-align:center; }
+  .bama-team .rank{
+    font-size:.75rem; font-weight:800; color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    padding: 2px 10px; border-radius: 999px;
+  }
+  .bama-team .record{ font-size:.85rem; color: var(--text-dim); }
+
+  .bama-vs{
+    font-size: 1.4rem; font-weight:900; color: var(--text-dim);
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+
+  .countdown{
+    display:flex; justify-content:center; gap:14px; margin: 8px 0 24px;
+    flex-wrap:wrap;
+  }
+  .countdown .box{
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius:14px;
+    padding: 12px 18px;
+    min-width: 78px;
+    text-align:center;
+    box-shadow: var(--shadow);
+  }
+  .countdown .box .num{ font-size:1.9rem; font-weight:900; font-variant-numeric: tabular-nums; }
+  .countdown .box .lbl{ font-size:.65rem; text-transform:uppercase; letter-spacing:1px; color: var(--text-dim); }
+
+  .bama-details{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .detail-pill{
+    background: var(--pill-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+  .detail-pill .lbl{ font-size:.68rem; text-transform:uppercase; letter-spacing:.8px; color: var(--text-dim); margin-bottom:4px; }
+  .detail-pill .val{ font-weight:700; font-size:.95rem; }
+
+  .tv-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .tv-chip{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:#ffffff;
+    border-radius:6px;
+    padding:4px 7px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+    line-height:0;
+  }
+  .tv-chip img{ height:22px; width:auto; max-width:68px; display:block; object-fit:contain; }
+  .tv-text{ font-weight:700; font-size:.85rem; }
+
+  .bama-stats{
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px 18px;
+  }
+  .bama-stats h3{ margin:0 0 10px; font-size:.9rem; text-transform:uppercase; letter-spacing:.6px; color: var(--text-dim); }
+  .stat-row{ display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-top:1px dashed var(--card-border); font-size:.88rem; }
+  .stat-row:first-of-type{ border-top:none; }
+  .stat-row .k{ color: var(--text-dim); }
+  .stat-row .v{ font-weight:700; text-align:right; }
+
+  /* ---------- SECTIONS ---------- */
+  #onnow-section, #other-section, #tv-section{ margin-bottom: 36px; }
+  .section-title{
+    font-size:1.15rem; margin-bottom: 4px;
+    display:flex; align-items:center; gap:2px;
+  }
+  .sub{ color: var(--text-dim); font-size:.85rem; margin-bottom:18px; }
+
+  .pulse-dot{
+    display:inline-block; width:9px; height:9px; border-radius:50%;
+    background: var(--bad); margin-right:8px;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 60%, transparent);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 55%, transparent); }
+    70%{ box-shadow: 0 0 0 9px transparent; }
+    100%{ box-shadow: 0 0 0 0 transparent; }
+  }
+
+  .games-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .game-card{
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .game-badges{ display:flex; gap:6px; flex-wrap:wrap; }
+  .badge{
+    font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+    padding: 3px 8px; border-radius: 999px;
+    background: var(--pill-bg); color: var(--text-dim);
+  }
+  .badge.top25{ background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+  .badge.sec{ background: color-mix(in srgb, #2b6cff 20%, transparent); color: #6c9bff; }
+  .badge.live-badge{ background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
+
+  .live-card{ border-color: color-mix(in srgb, var(--bad) 35%, var(--card-border)); }
+  .live-score{ font-size:1.3rem; font-weight:900; font-variant-numeric: tabular-nums; }
+  .odds-line{ font-weight:600; }
+  .odds-line b{ color: var(--text); }
+
+  .card-matchup{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .card-team{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; min-width:0; }
+  .card-team img{ width:46px; height:46px; object-fit:contain; }
+  .card-team .cname{ font-size:.78rem; font-weight:700; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .card-team .crank{ font-size:.65rem; font-weight:800; color: var(--accent); }
+  .card-team .crecord{ font-size:.7rem; color: var(--text-dim); }
+  .card-at{ font-size:.75rem; color: var(--text-dim); font-weight:700; }
+
+  .card-info{ font-size:.78rem; color: var(--text-dim); display:flex; flex-direction:column; gap:3px; border-top:1px solid var(--card-border); padding-top:10px; }
+  .card-info .line{ display:flex; gap:6px; }
+  .card-info .line b{ color: var(--text); font-weight:700; }
+
+  /* ---------- TV CHART ---------- */
+  .tv-scroll{
+    overflow-x:auto; overflow-y:hidden;
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  .tv-grid{ display:flex; align-items:flex-start; min-width:max-content; }
+  .tv-labels-col{
+    position:sticky; left:0; z-index:3;
+    background: var(--card);
+    border-right:1px solid var(--card-border);
+    flex: 0 0 auto;
+  }
+  .tv-corner{ height:36px; border-bottom:1px solid var(--card-border); }
+  .tv-rowlabel{
+    display:flex; align-items:center; justify-content:center;
+    border-bottom:1px solid var(--card-border);
+    padding: 4px 10px;
+    width:130px;
+  }
+  .tv-chart-col{ position:relative; flex: 0 0 auto; }
+  .tv-ruler{ position:relative; height:36px; border-bottom:1px solid var(--card-border); }
+  .tv-tick{ position:absolute; top:0; bottom:0; width:1px; background: var(--card-border); }
+  .tv-ticklabel{ position:absolute; top:8px; font-size:.65rem; color: var(--text-dim); transform:translateX(-50%); white-space:nowrap; }
+  .tv-daysep{ position:absolute; top:0; height:100%; width:2px; background: var(--accent); opacity:.3; z-index:1; }
+  .tv-daylabel{ position:absolute; top:4px; font-size:.72rem; font-weight:800; color: var(--accent); white-space:nowrap; z-index:2; }
+  .tv-body{ position:relative; }
+  .tv-lane-bg{ position:absolute; left:0; right:0; border-bottom:1px solid var(--card-border); }
+  .tv-lane-bg:nth-child(even){ background: color-mix(in srgb, var(--pill-bg) 60%, transparent); }
+  .tv-chip-game{
+    position:absolute;
+    display:flex; align-items:center; gap:4px;
+    background: var(--pill-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: .68rem; font-weight:700;
+    overflow:hidden; white-space:nowrap;
+    height: 34px;
+    cursor: default;
+  }
+  .tv-chip-game img{ width:16px; height:16px; object-fit:contain; flex: 0 0 auto; }
+  .tv-chip-game .tv-game-label{ overflow:hidden; text-overflow:ellipsis; }
+  .tv-chip-game.bama{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--pill-bg));
+  }
+  .tv-chip-game.live{ border-color: var(--bad); }
+  .tv-nowline{ position:absolute; top:0; height:100%; width:2px; background: var(--bad); z-index:4; }
+  .tv-nowline span{
+    position:absolute; top:-1px; left:4px; font-size:.6rem; font-weight:800;
+    color: var(--bad); background: var(--card); padding:0 4px; border-radius:4px; white-space:nowrap;
+  }
+
+  footer{ text-align:center; color: var(--text-dim); font-size:.75rem; margin-top: 40px; }
+
+  @media (max-width: 640px){
+    main{ padding: 16px; }
+    header{ padding: 12px 14px; flex-wrap:wrap; gap:10px 12px; row-gap:8px; }
+    header .brand{ font-size:1.02rem; }
+    header .controls{ width:100%; justify-content:space-between; }
+    #bama-section{ padding: 20px 16px; border-radius:18px; }
+    .bama-matchup{ gap:16px; }
+    .bama-team{ min-width:120px; }
+    .bama-team img{ width:72px; height:72px; }
+    .bama-team .name{ font-size:1rem; }
+    .countdown{ gap:10px; }
+    .countdown .box{ min-width: calc(50% - 10px); padding:10px 12px; }
+    .countdown .box .num{ font-size:1.4rem; }
+    .bama-details{ grid-template-columns: 1fr 1fr; gap:10px; }
+    .bama-stats{ padding:14px; }
+    .stat-row{ flex-wrap:wrap; }
+    .stat-row .v{ text-align:left; }
+    .games-grid{ grid-template-columns: 1fr; gap:12px; }
+    .card-team{ min-width:0; }
+  }
+
+  @media (max-width: 380px){
+    header .brand{ font-size:.92rem; }
+    .updated-label{ display:none; }
+    .bama-details{ grid-template-columns: 1fr; }
+    .countdown .box{ min-width: calc(50% - 8px); padding:8px 10px; }
+    .countdown .box .num{ font-size:1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="dot"></span> CFB Weekend Watch</div>
+  <div class="controls">
+    <span class="updated-label" id="updated-label">Not yet loaded</span>
+    <button class="btn" id="update-btn"><span class="spin" id="update-spin"></span><span id="update-text">↻ Update</span></button>
+    <div class="theme-toggle" id="theme-toggle" title="Toggle dark / light mode"><div class="knob" id="theme-knob">🌙</div></div>
+  </div>
+</header>
+
+<main>
+  <div id="status-banner">Loading upcoming schedule…</div>
+
+  <section id="bama-section"></section>
+
+  <section id="onnow-section" style="display:none;">
+    <h2 class="section-title"><span class="pulse-dot"></span>On Now</h2>
+    <div class="sub">Games currently in progress</div>
+    <div class="games-grid" id="onnow-grid"></div>
+  </section>
+
+  <section id="other-section" style="display:none;">
+    <h2 class="section-title">Other Games of Interest</h2>
+    <div class="sub">SEC matchups and Top 25 vs. Top 25 games for the upcoming weekend</div>
+    <div class="games-grid" id="games-grid"></div>
+  </section>
+
+  <section id="tv-section" style="display:none;">
+    <h2 class="section-title">📺 TV Viewing Guide</h2>
+    <div class="sub">Every game of interest, laid out by channel and kickoff time</div>
+    <div id="tv-chart"></div>
+  </section>
+
+  <footer>Data via ESPN. Refresh with the Update button — this page makes no server calls of its own.</footer>
+</main>
+
+<script>
+const ALABAMA_ID = '333';
+const SEC_GROUP = '8';
+const FBS_GROUP = '80';
+
+let countdownTimer = null;
+
+// ---------- Theme ----------
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-knob').textContent = t === 'dark' ? '🌙' : '☀️';
+  try{ localStorage.setItem('cfb-theme', t); }catch(e){}
+}
+(function initTheme(){
+  let saved = null;
+  try{ saved = localStorage.getItem('cfb-theme'); }catch(e){}
+  if(!saved){
+    saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  applyTheme(saved);
+})();
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+// ---------- Date helpers ----------
+function fmtYMD(d){
+  return d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+}
+function upcomingWeekendRange(now){
+  const dow = now.getDay(); // 0 Sun .. 6 Sat
+  let daysUntilSat = (6 - dow + 7) % 7;
+  const sat = new Date(now);
+  sat.setDate(sat.getDate() + daysUntilSat);
+  const start = new Date(sat); start.setDate(start.getDate() - 2); // Thursday
+  const end = new Date(sat); end.setDate(end.getDate() + 1); // Sunday
+  const dayStrs = [];
+  for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)){
+    dayStrs.push(fmtYMD(d));
+  }
+  return { start, end, startStr: fmtYMD(start), endStr: fmtYMD(end), dayStrs };
+}
+
+// ---------- Fetch ----------
+// Prefer our own local server's proxy (no CORS/third-party-proxy issues at all).
+// Falls back to hitting ESPN directly, which still works when this file is
+// opened standalone (file://) without the server running.
+// NOTE: ESPN's "dates=START-END" range query started returning 400 for every
+// range (even a 1-day range) — only a single bare "dates=YYYYMMDD" is reliable
+// now, so each day in the window is fetched separately and merged.
+async function fetchScoreboardDay(group, dayStr){
+  const localUrl = `/api/scoreboard?group=${group}&dates=${dayStr}`;
+  const directUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=${dayStr}&groups=${group}&limit=400`;
+
+  try{
+    const r = await fetch(localUrl, {cache:'no-store'});
+    if(!r.ok) throw new Error('local proxy status ' + r.status);
+    return await r.json();
+  }catch(e){
+    const r2 = await fetch(directUrl, {cache:'no-store'});
+    if(!r2.ok) throw new Error('ESPN status ' + r2.status);
+    return await r2.json();
+  }
+}
+
+async function fetchScoreboard(group, dayStrs){
+  const dayResults = await Promise.all(dayStrs.map(d => fetchScoreboardDay(group, d)));
+  const events = [];
+  dayResults.forEach(data => { if(data && data.events) events.push(...data.events); });
+  return { events };
+}
+
+function recordSummary(team){
+  if(!team.records) return '—';
+  const total = team.records.find(r => r.type === 'total');
+  return total ? total.summary : '—';
+}
+function rankOf(competitor){
+  return (competitor.curatedRank && competitor.curatedRank.current && competitor.curatedRank.current <= 25) ? competitor.curatedRank.current : null;
+}
+function isTop25(competitor){ return rankOf(competitor) !== null; }
+
+const NETWORK_LOGOS = {
+  'ESPN': 'https://a.espncdn.com/guid/335fd2d2-97b9-336b-81ee-573eb6bdcffc/logos/default.png',
+  'ESPN2': 'https://a.espncdn.com/guid/4bab8fd8-cd13-379f-9558-c3614851bf91/logos/default.png',
+  'ESPNU': 'https://a.espncdn.com/guid/8c9e5134-a2bf-39f1-9380-3ec6c75ed106/logos/default.png',
+  'ESPN+': 'https://a.espncdn.com/guid/322a7e47-3cdb-3b5c-ab1b-678e1f2c27e5/logos/default.png',
+  'ABC': 'https://a.espncdn.com/guid/2acff74d-269f-36ac-96eb-9c66f8ba52ff/logos/default.png',
+  'SEC Network': 'https://a.espncdn.com/guid/4658b4d2-a8e1-3630-9475-13af31514cfe/logos/default.png',
+  'SECN+': 'https://a.espncdn.com/guid/d1e3d7c4-8e72-37f3-b9b9-515573fd5526/logos/default.png',
+  'ACC Network': 'https://a.espncdn.com/guid/8936b3f6-e2cb-3924-807b-00f236018174/logos/default.png',
+  'ACCNX': 'https://a.espncdn.com/guid/f3b48d90-e60f-37fd-9581-5a763786784c/logos/default.png',
+  'Disney+': 'https://a.espncdn.com/guid/2f3d8704-2682-3195-9920-bb3e38d3e845/logos/default.png',
+  'CW': 'https://a.espncdn.com/guid/1cea662c-18ca-3bbe-a88d-fb4e42bb8ecb/logos/default.png',
+  'FOX': 'https://upload.wikimedia.org/wikipedia/commons/c/c0/Fox_Broadcasting_Company_logo_%282019%29.svg',
+  'FS1': 'https://upload.wikimedia.org/wikipedia/commons/9/98/Fox_Sports_1_logo.svg',
+  'CBS': 'https://upload.wikimedia.org/wikipedia/commons/4/4e/CBS_logo.svg',
+  'NBC': 'https://upload.wikimedia.org/wikipedia/commons/3/3f/NBC_logo.svg',
+  'TNT': 'https://upload.wikimedia.org/wikipedia/commons/2/24/TNT_Logo_2016.svg',
+  'USA Net': 'https://upload.wikimedia.org/wikipedia/commons/d/d7/USA_Network_logo_%282016%29.svg',
+  'Peacock': 'https://upload.wikimedia.org/wikipedia/commons/f/fb/NBCUniversal_Peacock_Logo_%282020%E2%80%932026%29.svg',
+  'CBSSN': 'https://upload.wikimedia.org/wikipedia/commons/0/04/CBS_Sports_Network_2021.svg',
+  'BTN': 'https://upload.wikimedia.org/wikipedia/en/3/39/Big_Ten_Network_Logo.svg'
+};
+
+function broadcastText(comp){
+  if(!comp.broadcasts || !comp.broadcasts.length) return 'TBD';
+  return comp.broadcasts.map(b => (b.names || []).join('/')).filter(Boolean).join(', ') || 'TBD';
+}
+function broadcastNames(comp){
+  if(!comp.broadcasts || !comp.broadcasts.length) return [];
+  const names = [];
+  comp.broadcasts.forEach(b => (b.names || []).forEach(n => names.push(n)));
+  return names;
+}
+function broadcastHtml(comp){
+  const names = broadcastNames(comp);
+  if(!names.length) return '<span class="tv-text">TBD</span>';
+  return names.map(n => {
+    const logo = NETWORK_LOGOS[n];
+    if(logo){
+      return `<span class="tv-chip" title="${n}"><img src="${logo}" alt="${n}" loading="lazy"></span>`;
+    }
+    return `<span class="tv-text">${n}</span>`;
+  }).join('');
+}
+function oddsText(comp){
+  if(!comp.odds || !comp.odds.length) return null;
+  const o = comp.odds[0];
+  const parts = [];
+  if(o.details) parts.push(o.details);
+  if(typeof o.overUnder === 'number') parts.push('O/U ' + o.overUnder);
+  return parts.join(' · ') || null;
+}
+function venueText(comp){
+  const v = comp.venue;
+  if(!v) return 'TBD';
+  const city = v.address ? [v.address.city, v.address.state].filter(Boolean).join(', ') : '';
+  return v.fullName + (city ? ' — ' + city : '');
+}
+function leaderLine(team){
+  if(!team.leaders || !team.leaders.length) return null;
+  const wanted = ['passingLeader','rushingLeader','receivingLeader'];
+  const lines = [];
+  wanted.forEach(name => {
+    const cat = team.leaders.find(l => l.name === name);
+    if(cat && cat.leaders && cat.leaders[0]){
+      const l = cat.leaders[0];
+      lines.push({ label: cat.shortDisplayName || cat.displayName, athlete: l.athlete.displayName, value: l.displayValue });
+    }
+  });
+  return lines;
+}
+
+function dedupeById(events){
+  const seen = new Set();
+  const out = [];
+  events.forEach(e => { if(!seen.has(e.id)){ seen.add(e.id); out.push(e); } });
+  return out;
+}
+
+// ---------- Rendering ----------
+function renderBama(event){
+  const section = document.getElementById('bama-section');
+  section.style.display = 'block';
+  const comp = event.competitions[0];
+  const home = comp.competitors.find(c => c.homeAway === 'home');
+  const away = comp.competitors.find(c => c.homeAway === 'away');
+  const bama = home.team.id === ALABAMA_ID ? home : away;
+  const opp = home.team.id === ALABAMA_ID ? away : home;
+  const bamaIsHome = home.team.id === ALABAMA_ID;
+
+  const kickoff = new Date(event.date);
+  const odds = oddsText(comp);
+  const oppLeaders = leaderLine(opp);
+  const state = event.status && event.status.type ? event.status.type.state : 'pre';
+  const isLive = state === 'in';
+  const isFinal = state === 'post';
+
+  let eyebrowText = 'Alabama Crimson Tide — Up Next';
+  if(isLive) eyebrowText = 'Alabama Crimson Tide — Live Now';
+  else if(isFinal) eyebrowText = 'Alabama Crimson Tide — Final';
+
+  const scoreLine = (c) => (isLive || isFinal) ? `<div class="record live-score">${c.score}</div>` : `<div class="record">${recordSummary(c)}</div>`;
+
+  const countdownOrStatusHtml = (isLive || isFinal)
+    ? `<div class="countdown" id="bama-countdown"><div class="box" style="min-width:220px;"><div class="num" style="font-size:1.1rem;">${event.status.type.shortDetail || event.status.type.detail || (isFinal ? 'FINAL' : 'LIVE')}</div></div></div>`
+    : `<div class="countdown" id="bama-countdown">
+        <div class="box"><div class="num" id="cd-days">--</div><div class="lbl">Days</div></div>
+        <div class="box"><div class="num" id="cd-hours">--</div><div class="lbl">Hours</div></div>
+        <div class="box"><div class="num" id="cd-mins">--</div><div class="lbl">Mins</div></div>
+        <div class="box"><div class="num" id="cd-secs">--</div><div class="lbl">Secs</div></div>
+      </div>`;
+
+  section.innerHTML = `
+    <div class="bama-eyebrow">${isLive ? '<span class="pulse-dot"></span>' : ''}${eyebrowText}</div>
+    <div class="bama-matchup">
+      <div class="bama-team">
+        <img src="${away.team.logo}" alt="${away.team.displayName} logo">
+        <div class="name">${away.team.shortDisplayName || away.team.displayName}</div>
+        ${rankOf(away) ? `<div class="rank">#${rankOf(away)}</div>` : ''}
+        ${scoreLine(away)}
+      </div>
+      <div class="bama-vs">
+        <div>${comp.neutralSite ? 'VS' : '@'}</div>
+      </div>
+      <div class="bama-team">
+        <img src="${home.team.logo}" alt="${home.team.displayName} logo">
+        <div class="name">${home.team.shortDisplayName || home.team.displayName}</div>
+        ${rankOf(home) ? `<div class="rank">#${rankOf(home)}</div>` : ''}
+        ${scoreLine(home)}
+      </div>
+    </div>
+
+    ${countdownOrStatusHtml}
+
+    <div class="bama-details">
+      <div class="detail-pill"><div class="lbl">Kickoff</div><div class="val">${kickoff.toLocaleString(undefined, {weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})}</div></div>
+      <div class="detail-pill"><div class="lbl">Location</div><div class="val">${venueText(comp)}</div></div>
+      <div class="detail-pill"><div class="lbl">TV</div><div class="val tv-row">${broadcastHtml(comp)}</div></div>
+      <div class="detail-pill"><div class="lbl">Betting Line</div><div class="val">${odds || 'Not posted'}</div></div>
+    </div>
+
+    <div class="bama-stats">
+      <h3>Scouting ${opp.team.displayName}</h3>
+      <div class="stat-row"><span class="k">Record</span><span class="v">${recordSummary(opp)}${rankOf(opp) ? ' (#' + rankOf(opp) + ' AP)' : ''}</span></div>
+      ${(oppLeaders && oppLeaders.length) ? oppLeaders.map(l => `<div class="stat-row"><span class="k">${l.label}</span><span class="v">${l.athlete} — ${l.value}</span></div>`).join('') : '<div class="stat-row"><span class="k">Stats</span><span class="v">Not yet available</span></div>'}
+    </div>
+  `;
+
+  if(countdownTimer) clearInterval(countdownTimer);
+  if(isLive || isFinal) return;
+
+  function tick(){
+    const now = new Date();
+    let diff = kickoff.getTime() - now.getTime();
+    const d = document.getElementById('cd-days');
+    const h = document.getElementById('cd-hours');
+    const m = document.getElementById('cd-mins');
+    const s = document.getElementById('cd-secs');
+    if(!d) { clearInterval(countdownTimer); return; }
+    if(diff <= 0){
+      d.textContent = '0'; h.textContent = '0'; m.textContent = '0'; s.textContent = '0';
+      document.querySelector('.bama-eyebrow').textContent = 'Kickoff!';
+      clearInterval(countdownTimer);
+      return;
+    }
+    const days = Math.floor(diff / 86400000); diff -= days*86400000;
+    const hours = Math.floor(diff / 3600000); diff -= hours*3600000;
+    const mins = Math.floor(diff / 60000); diff -= mins*60000;
+    const secs = Math.floor(diff / 1000);
+    d.textContent = days; h.textContent = hours; m.textContent = mins; s.textContent = secs;
+  }
+  tick();
+  countdownTimer = setInterval(tick, 1000);
+}
+
+function renderBamaBye(){
+  const section = document.getElementById('bama-section');
+  section.style.display = 'block';
+  section.innerHTML = `
+    <div class="bama-eyebrow">Alabama Crimson Tide</div>
+    <div style="text-align:center; padding: 30px 10px; font-weight:700; font-size:1.1rem;">
+      No Alabama game found for the upcoming weekend window — likely a bye week.
+    </div>
+  `;
+}
+
+function gameCard(event){
+  const comp = event.competitions[0];
+  const home = comp.competitors.find(c => c.homeAway === 'home');
+  const away = comp.competitors.find(c => c.homeAway === 'away');
+  const kickoff = new Date(event.date);
+  const odds = oddsText(comp);
+  const badges = [];
+  if(isTop25(home) && isTop25(away)) badges.push('<span class="badge top25">Top 25 Matchup</span>');
+  if(event._isSec) badges.push('<span class="badge sec">SEC</span>');
+
+  return `
+    <div class="game-card">
+      <div class="game-badges">${badges.join('')}</div>
+      <div class="card-matchup">
+        <div class="card-team">
+          <img src="${away.team.logo}" alt="${away.team.displayName}">
+          <div class="cname">${away.team.shortDisplayName || away.team.displayName}</div>
+          ${rankOf(away) ? `<div class="crank">#${rankOf(away)}</div>` : ''}
+          <div class="crecord">${recordSummary(away)}</div>
+        </div>
+        <div class="card-at">@</div>
+        <div class="card-team">
+          <img src="${home.team.logo}" alt="${home.team.displayName}">
+          <div class="cname">${home.team.shortDisplayName || home.team.displayName}</div>
+          ${rankOf(home) ? `<div class="crank">#${rankOf(home)}</div>` : ''}
+          <div class="crecord">${recordSummary(home)}</div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="line"><b>${kickoff.toLocaleString(undefined, {weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})}</b></div>
+        <div class="line">📍 ${venueText(comp)}</div>
+        <div class="line tv-row">${broadcastHtml(comp)}</div>
+        ${odds ? `<div class="line odds-line">💰 <b>${odds}</b></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function liveGameCard(event){
+  const comp = event.competitions[0];
+  const home = comp.competitors.find(c => c.homeAway === 'home');
+  const away = comp.competitors.find(c => c.homeAway === 'away');
+  const odds = oddsText(comp);
+  const statusDetail = (event.status && event.status.type) ? (event.status.type.shortDetail || event.status.type.detail) : 'LIVE';
+  const badges = ['<span class="badge live-badge"><span class="pulse-dot" style="margin-right:5px;"></span>LIVE</span>'];
+  if(isTop25(home) && isTop25(away)) badges.push('<span class="badge top25">Top 25 Matchup</span>');
+  if(event._isSec) badges.push('<span class="badge sec">SEC</span>');
+
+  return `
+    <div class="game-card live-card">
+      <div class="game-badges">${badges.join('')}</div>
+      <div class="card-matchup">
+        <div class="card-team">
+          <img src="${away.team.logo}" alt="${away.team.displayName}">
+          <div class="cname">${away.team.shortDisplayName || away.team.displayName}</div>
+          ${rankOf(away) ? `<div class="crank">#${rankOf(away)}</div>` : ''}
+          <div class="live-score">${away.score}</div>
+        </div>
+        <div class="card-at">@</div>
+        <div class="card-team">
+          <img src="${home.team.logo}" alt="${home.team.displayName}">
+          <div class="cname">${home.team.shortDisplayName || home.team.displayName}</div>
+          ${rankOf(home) ? `<div class="crank">#${rankOf(home)}</div>` : ''}
+          <div class="live-score">${home.score}</div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="line"><b>${statusDetail}</b></div>
+        <div class="line">📍 ${venueText(comp)}</div>
+        <div class="line tv-row">${broadcastHtml(comp)}</div>
+        ${odds ? `<div class="line odds-line">💰 <b>${odds}</b></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ---------- TV Viewing Guide chart ----------
+function buildTvChart(games){
+  if(!games.length) return '<div style="color:var(--text-dim); padding:16px;">No games to chart yet.</div>';
+
+  const PX_PER_HOUR = 64;
+  const GAME_HOURS = 3.5;
+  const ROW_H = 38;
+
+  const rowsMap = new Map();
+  let minTime = Infinity, maxTime = -Infinity;
+
+  games.forEach(ev => {
+    const comp = ev.competitions[0];
+    const start = new Date(ev.date).getTime();
+    const end = start + GAME_HOURS * 3600000;
+    minTime = Math.min(minTime, start);
+    maxTime = Math.max(maxTime, end);
+    const names = broadcastNames(comp);
+    const chans = names.length ? names : ['TBD'];
+    chans.forEach(ch => {
+      if(!rowsMap.has(ch)) rowsMap.set(ch, []);
+      rowsMap.get(ch).push({ ev, comp, start, end });
+    });
+  });
+
+  minTime = Math.floor(minTime / 3600000) * 3600000;
+  maxTime = Math.ceil(maxTime / 3600000) * 3600000;
+  const totalHours = Math.max(1, (maxTime - minTime) / 3600000);
+  const chartWidth = totalHours * PX_PER_HOUR;
+
+  const priority = Object.keys(NETWORK_LOGOS);
+  const channels = [...rowsMap.keys()].sort((a, b) => {
+    const ia = priority.indexOf(a), ib = priority.indexOf(b);
+    if(ia === -1 && ib === -1) return a.localeCompare(b);
+    if(ia === -1) return 1;
+    if(ib === -1) return -1;
+    return ia - ib;
+  });
+
+  // Lane-pack overlapping games within each channel row
+  const rowMeta = [];
+  let bodyHeight = 0;
+  channels.forEach(ch => {
+    const items = rowsMap.get(ch).sort((a, b) => a.start - b.start);
+    const laneEnds = [];
+    items.forEach(it => {
+      let laneIdx = laneEnds.findIndex(endT => endT <= it.start);
+      if(laneIdx === -1){ laneIdx = laneEnds.length; laneEnds.push(it.end); }
+      else laneEnds[laneIdx] = it.end;
+      it.lane = laneIdx;
+    });
+    const numLanes = Math.max(1, laneEnds.length);
+    const height = numLanes * ROW_H;
+    rowMeta.push({ ch, items, numLanes, top: bodyHeight, height });
+    bodyHeight += height;
+  });
+
+  // Ruler ticks + day separators
+  let tickHtml = '';
+  let daySepHtml = '';
+  for(let h = 0; h <= totalHours; h++){
+    const t = new Date(minTime + h * 3600000);
+    const x = h * PX_PER_HOUR;
+    if(t.getHours() === 0){
+      daySepHtml += `<div class="tv-daysep" style="left:${x}px;"></div>`;
+      daySepHtml += `<div class="tv-daylabel" style="left:${x + 6}px;">${t.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'})}</div>`;
+    }
+    if(t.getHours() % 3 === 0){
+      tickHtml += `<div class="tv-tick" style="left:${x}px;"></div>`;
+      tickHtml += `<div class="tv-ticklabel" style="left:${x}px;">${t.toLocaleTimeString(undefined, {hour:'numeric'})}</div>`;
+    }
+  }
+
+  const now = Date.now();
+  let nowLineHtml = '';
+  if(now >= minTime && now <= maxTime){
+    const x = (now - minTime) / 3600000 * PX_PER_HOUR;
+    nowLineHtml = `<div class="tv-nowline" style="left:${x}px;"><span>NOW</span></div>`;
+  }
+
+  let laneBgHtml = '';
+  let chipsHtml = '';
+  rowMeta.forEach(rm => {
+    for(let lane = 0; lane < rm.numLanes; lane++){
+      laneBgHtml += `<div class="tv-lane-bg" style="top:${rm.top + lane*ROW_H}px; height:${ROW_H}px;"></div>`;
+    }
+    rm.items.forEach(it => {
+      const comp = it.comp;
+      const home = comp.competitors.find(c => c.homeAway === 'home');
+      const away = comp.competitors.find(c => c.homeAway === 'away');
+      const x = (it.start - minTime) / 3600000 * PX_PER_HOUR;
+      const w = Math.max(40, (it.end - it.start) / 3600000 * PX_PER_HOUR - 4);
+      const y = rm.top + it.lane * ROW_H + 2;
+      const isBama = comp.competitors.some(c => c.team.id === ALABAMA_ID);
+      const isLive = it.ev.status && it.ev.status.type && it.ev.status.type.state === 'in';
+      const awayAbbr = away.team.abbreviation || away.team.shortDisplayName;
+      const homeAbbr = home.team.abbreviation || home.team.shortDisplayName;
+      const timeLabel = new Date(it.start).toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+      const title = `${away.team.displayName} @ ${home.team.displayName} — ${timeLabel}`;
+      chipsHtml += `<div class="tv-chip-game${isBama ? ' bama' : ''}${isLive ? ' live' : ''}" style="left:${x}px; top:${y}px; width:${w}px;" title="${title}">
+        <img src="${away.team.logo}" alt="">
+        <span class="tv-game-label">${awayAbbr}@${homeAbbr}</span>
+        <img src="${home.team.logo}" alt="">
+      </div>`;
+    });
+  });
+
+  const labelsHtml = rowMeta.map(rm => {
+    const logo = NETWORK_LOGOS[rm.ch];
+    return `<div class="tv-rowlabel" style="height:${rm.height}px;">
+      ${logo ? `<span class="tv-chip"><img src="${logo}" alt="${rm.ch}"></span>` : `<span class="tv-text">${rm.ch}</span>`}
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="tv-scroll">
+      <div class="tv-grid">
+        <div class="tv-labels-col">
+          <div class="tv-corner"></div>
+          ${labelsHtml}
+        </div>
+        <div class="tv-chart-col" style="width:${chartWidth}px;">
+          ${daySepHtml}
+          ${nowLineHtml}
+          <div class="tv-ruler" style="width:${chartWidth}px;">${tickHtml}</div>
+          <div class="tv-body" style="width:${chartWidth}px; height:${bodyHeight}px;">${laneBgHtml}${chipsHtml}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---------- Main load ----------
+async function loadSchedule(){
+  const banner = document.getElementById('status-banner');
+  const bamaSection = document.getElementById('bama-section');
+  const onnowSection = document.getElementById('onnow-section');
+  const otherSection = document.getElementById('other-section');
+  const tvSection = document.getElementById('tv-section');
+  const updateBtn = document.getElementById('update-btn');
+  const spin = document.getElementById('update-spin');
+  const updateText = document.getElementById('update-text');
+
+  updateBtn.disabled = true;
+  spin.classList.add('active');
+  updateText.textContent = 'Updating…';
+  banner.style.display = 'block';
+  banner.classList.remove('error');
+  banner.textContent = 'Loading upcoming schedule…';
+  bamaSection.style.display = 'none';
+  onnowSection.style.display = 'none';
+  otherSection.style.display = 'none';
+  tvSection.style.display = 'none';
+
+  try{
+    const { dayStrs } = upcomingWeekendRange(new Date());
+    const [fbsData, secData] = await Promise.all([
+      fetchScoreboard(FBS_GROUP, dayStrs),
+      fetchScoreboard(SEC_GROUP, dayStrs)
+    ]);
+
+    const fbsEvents = fbsData.events || [];
+    const secEvents = (secData.events || []).map(e => { e._isSec = true; return e; });
+
+    const bamaEvent = fbsEvents.find(e => e.competitions[0].competitors.some(c => c.team.id === ALABAMA_ID))
+      || secEvents.find(e => e.competitions[0].competitors.some(c => c.team.id === ALABAMA_ID));
+
+    const top25Events = fbsEvents.filter(e => {
+      const c = e.competitions[0].competitors;
+      return c.length === 2 && isTop25(c[0]) && isTop25(c[1]);
+    });
+
+    const allInterest = dedupeById([...secEvents, ...top25Events]);
+    allInterest.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    const isLiveEvent = e => e.status && e.status.type && e.status.type.state === 'in';
+
+    const liveGames = allInterest.filter(e => isLiveEvent(e) && (!bamaEvent || e.id !== bamaEvent.id));
+    const otherGames = allInterest.filter(e => (!bamaEvent || e.id !== bamaEvent.id) && !isLiveEvent(e));
+
+    banner.style.display = 'none';
+
+    if(bamaEvent){
+      renderBama(bamaEvent);
+    } else {
+      renderBamaBye();
+    }
+
+    if(liveGames.length){
+      onnowSection.style.display = 'block';
+      document.getElementById('onnow-grid').innerHTML = liveGames.map(liveGameCard).join('');
+    }
+
+    otherSection.style.display = 'block';
+    const grid = document.getElementById('games-grid');
+    grid.innerHTML = otherGames.length
+      ? otherGames.map(gameCard).join('')
+      : '<div style="color:var(--text-dim);">No SEC or Top 25 vs Top 25 games found for this window.</div>';
+
+    tvSection.style.display = 'block';
+    const tvGames = bamaEvent ? dedupeById([bamaEvent, ...allInterest]) : allInterest;
+    document.getElementById('tv-chart').innerHTML = buildTvChart(tvGames);
+
+    document.getElementById('updated-label').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  }catch(err){
+    banner.style.display = 'block';
+    banner.classList.add('error');
+    banner.textContent = 'Could not load schedule data (' + err.message + '). Check your internet connection and try Update again.';
+  }finally{
+    updateBtn.disabled = false;
+    spin.classList.remove('active');
+    updateText.textContent = '↻ Update';
+  }
+}
+
+document.getElementById('update-btn').addEventListener('click', loadSchedule);
+loadSchedule();
+</script>
+
+</body>
+</html>
