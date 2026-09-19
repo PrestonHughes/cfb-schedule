@@ -282,8 +282,11 @@
   .badge.top25{ background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
   .badge.sec{ background: color-mix(in srgb, #2b6cff 20%, transparent); color: #6c9bff; }
   .badge.live-badge{ background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
+  .badge.final-badge{ background: color-mix(in srgb, var(--good) 20%, transparent); color: var(--good); }
 
   .live-card{ border-color: color-mix(in srgb, var(--bad) 35%, var(--card-border)); }
+  .final-card{ border-color: color-mix(in srgb, var(--good) 30%, var(--card-border)); opacity: 0.85; }
+  .final-card:hover{ opacity: 1; }
   .live-score{ font-size:1.3rem; font-weight:900; font-variant-numeric: tabular-nums; }
   .odds-line{ font-weight:600; }
   .odds-line b{ color: var(--text); }
@@ -912,30 +915,36 @@ function gameCard(event){
   const away = comp.competitors.find(c => c.homeAway === 'away');
   const kickoff = new Date(event.date);
   const odds = oddsText(comp);
+  const isFinal = event.status && event.status.type && event.status.type.state === 'post';
   const badges = [];
+  if(isFinal) badges.push('<span class="badge final-badge">FINAL</span>');
   if(isTop25(home) && isTop25(away)) badges.push('<span class="badge top25">Top 25 Matchup</span>');
   if(event._isSec) badges.push('<span class="badge sec">SEC</span>');
 
+  const statusLine = isFinal
+    ? `Final (${kickoff.toLocaleString(undefined, {weekday:'long', month:'short', day:'numeric'})})`
+    : kickoff.toLocaleString(undefined, {weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+
   return `
-    <a class="game-card" href="${gameLink(event)}" target="_blank" rel="noopener noreferrer">
+    <a class="game-card${isFinal ? ' final-card' : ''}" href="${gameLink(event)}" target="_blank" rel="noopener noreferrer">
       <div class="game-badges">${badges.join('')}</div>
       <div class="card-matchup">
         <div class="card-team">
           <img src="${away.team.logo}" alt="${away.team.displayName}">
           <div class="cname">${away.team.shortDisplayName || away.team.displayName}</div>
           ${rankOf(away) ? `<div class="crank">#${rankOf(away)}</div>` : ''}
-          <div class="crecord">${recordSummary(away)}</div>
+          <div class="${isFinal ? 'live-score' : 'crecord'}">${isFinal ? away.score : recordSummary(away)}</div>
         </div>
         <div class="card-at">@</div>
         <div class="card-team">
           <img src="${home.team.logo}" alt="${home.team.displayName}">
           <div class="cname">${home.team.shortDisplayName || home.team.displayName}</div>
           ${rankOf(home) ? `<div class="crank">#${rankOf(home)}</div>` : ''}
-          <div class="crecord">${recordSummary(home)}</div>
+          <div class="${isFinal ? 'live-score' : 'crecord'}">${isFinal ? home.score : recordSummary(home)}</div>
         </div>
       </div>
       <div class="card-info">
-        <div class="line"><b>${kickoff.toLocaleString(undefined, {weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})}</b></div>
+        <div class="line"><b>${statusLine}</b></div>
         <div class="line">📍 ${venueText(comp)}</div>
         <div class="line tv-row">${broadcastHtml(comp)}</div>
         ${odds ? `<div class="line odds-line">💰 <b>${odds}</b></div>` : ''}

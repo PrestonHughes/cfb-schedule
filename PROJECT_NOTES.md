@@ -24,7 +24,15 @@ guide, and Alabama's roster. Built for Preston Hughes.
 3. **"Other Games of Interest"** — every SEC team's game plus every
    Top-25-vs-Top-25 matchup for the upcoming weekend, as clickable cards
    (link to the ESPN game page) with logos, records, rank badges, kickoff
-   time, location, TV network logo, and betting line.
+   time, location, TV network logo, and betting line. Games that have
+   finished (ESPN status `state === 'post'`) render as "final" cards
+   instead: green "FINAL" badge, final score in place of the record,
+   "Final (Weekday, Mon D)" in place of kickoff time, a muted green
+   border, and slightly reduced opacity (see `gameCard()` / `.final-card`).
+   The weekend date window (`upcomingWeekendRange()`) already auto-advances
+   to the next Thu–Sun window starting Sunday, so finished games naturally
+   drop off and get replaced by the next weekend's games — no separate
+   cleanup logic needed.
 4. **TV Viewing Guide** — a horizontally-scrollable timeline chart: channels
    as rows (sticky logos), time across the top, each game plotted as a chip
    at its kickoff slot. Overlapping games on the same channel stack into
@@ -158,9 +166,13 @@ GitHub Pages, just not implemented yet.
 
 ## Recent history (most recent first)
 
+- Added "final" styling to "Other Games of Interest" cards: finished games
+  show a green FINAL badge, final score, "Final (Weekday, Mon D)" instead
+  of kickoff time, and a dimmed/green-bordered card. Confirmed (did not
+  need to change) that the weekend date window already rolls over to the
+  next Thu–Sun starting Sunday, so old games get replaced automatically.
 - Added Offense/Defense/Special Teams filter buttons to the roster section,
-  derived from position via a `POSITION_GROUP` map. **Not yet
-  committed/pushed** as of this writing.
+  derived from position via a `POSITION_GROUP` map.
 - Added `classYear` (FR/SO/JR/SR) to each roster player's expanded detail
   view. **Not yet committed/pushed** as of this writing.
 - Added the sortable/expandable Alabama roster section.
