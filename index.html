@@ -176,6 +176,31 @@
     white-space:nowrap;
   }
   .bama-team .record{ font-size:.85rem; color: var(--text-dim); }
+  .bama-team .record.live-score{ font-size:2.6rem; line-height:1; color: var(--text); }
+
+  /* Bye week: big headline, then the next game in a muted, dashed "preview" panel */
+  .bye-headline{
+    text-align:center; font-size:2.6rem; font-weight:900; letter-spacing:1px;
+    text-transform:uppercase; margin: 6px 0 4px;
+  }
+  .bye-sub{ text-align:center; color: var(--text-dim); font-size:.95rem; margin-bottom: 22px; }
+  .bama-next{
+    position:relative;
+    border: 2px dashed var(--card-border);
+    border-radius: 18px;
+    padding: 22px 18px 18px;
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+  }
+  .bama-next-tag{
+    position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+    background: var(--accent-2); color: var(--bg);
+    font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;
+    padding: 3px 12px; border-radius: 999px; white-space:nowrap;
+  }
+  .bama-next .bama-team img{ width:68px; height:68px; }
+  .bama-next .bama-team .name{ font-size:1rem; }
+  .bama-next .countdown .box{ padding: 8px 12px; min-width: 62px; box-shadow:none; }
+  .bama-next .countdown .box .num{ font-size:1.3rem; }
 
   .bama-vs{
     font-size: 1.4rem; font-weight:900; color: var(--text-dim);
@@ -810,9 +835,10 @@ function dedupeById(events){
 }
 
 // ---------- Rendering ----------
-function renderBama(event){
+function renderBama(event, opts = {}){
   const section = document.getElementById('bama-section');
   section.style.display = 'block';
+  const isNextPreview = !!opts.nextPreview;
   const comp = event.competitions[0];
   const home = comp.competitors.find(c => c.homeAway === 'home');
   const away = comp.competitors.find(c => c.homeAway === 'away');
@@ -829,6 +855,7 @@ function renderBama(event){
   const isFinal = state === 'post';
 
   let eyebrowText = 'Alabama Crimson Tide — Up Next';
+  if(isNextPreview) eyebrowText = 'Alabama Crimson Tide';
   if(isLive) eyebrowText = 'Alabama Crimson Tide — Live Now';
   else if(isFinal) eyebrowText = 'Alabama Crimson Tide — Final';
 
@@ -843,8 +870,7 @@ function renderBama(event){
         <div class="box"><div class="num" id="cd-secs">--</div><div class="lbl">Secs</div></div>
       </div>`;
 
-  section.innerHTML = `
-    <div class="bama-eyebrow">${isLive ? '<span class="pulse-dot"></span>' : ''}${eyebrowText}</div>
+  const gameHtml = `
     <div class="bama-matchup">
       <div class="bama-team">
         <div class="bama-logo-wrap">
@@ -887,6 +913,17 @@ function renderBama(event){
     </div>
   `;
 
+  const eyebrowHtml = `<div class="bama-eyebrow">${isLive ? '<span class="pulse-dot"></span>' : ''}${eyebrowText}</div>`;
+  section.innerHTML = isNextPreview
+    ? `${eyebrowHtml}
+      <div class="bye-headline">Bye Week</div>
+      <div class="bye-sub">No game this weekend. Here's what's next.</div>
+      <div class="bama-next">
+        <div class="bama-next-tag">Next Game · ${kickoff.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'})}</div>
+        ${gameHtml}
+      </div>`
+    : eyebrowHtml + gameHtml;
+
   if(countdownTimer) clearInterval(countdownTimer);
   if(isLive || isFinal) return;
 
@@ -917,12 +954,56 @@ function renderBama(event){
 function renderBamaBye(){
   const section = document.getElementById('bama-section');
   section.style.display = 'block';
+  if(countdownTimer) clearInterval(countdownTimer);
   section.innerHTML = `
     <div class="bama-eyebrow">Alabama Crimson Tide</div>
-    <div style="text-align:center; padding: 30px 10px; font-weight:700; font-size:1.1rem;">
-      No Alabama game found for the upcoming weekend window — likely a bye week.
-    </div>
+    <div class="bye-headline">Bye Week</div>
+    <div class="bye-sub">No game this weekend.</div>
   `;
+}
+
+// ESPN's scoreboard is keyed by Eastern-time dates, so convert before fetching.
+function easternYMD(date){
+  const parts = new Intl.DateTimeFormat('en-US', {timeZone:'America/New_York', year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(date);
+  const get = t => parts.find(p => p.type === t).value;
+  return get('year') + get('month') + get('day');
+}
+
+async function fetchBamaSchedule(){
+  const localUrl = `/api/team-schedule?team=${ALABAMA_ID}`;
+  const directUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${ALABAMA_ID}/schedule`;
+  try{
+    const r = await fetch(localUrl, {cache:'no-store'});
+    if(!r.ok) throw new Error('local proxy status ' + r.status);
+    return await r.json();
+  }catch(e){
+    const r2 = await fetch(directUrl, {cache:'no-store'});
+    if(!r2.ok) throw new Error('ESPN status ' + r2.status);
+    return await r2.json();
+  }
+}
+
+// Finds Alabama's next scheduled game after this weekend and pulls the full
+// scoreboard entry for it (odds, records, leaders) so it renders like a normal game.
+async function findNextBamaEvent(){
+  const sched = await fetchBamaSchedule();
+  const now = Date.now();
+  const next = (sched.events || [])
+    .filter(e => new Date(e.date).getTime() > now)
+    .sort((a,b) => new Date(a.date) - new Date(b.date))[0];
+  if(!next) return null;
+  const day = await fetchScoreboardDay(FBS_GROUP, easternYMD(new Date(next.date)));
+  return (day.events || []).find(e => e.id === next.id) || null;
+}
+
+async function renderBamaByeWithNext(){
+  renderBamaBye();
+  try{
+    const nextEvent = await findNextBamaEvent();
+    if(nextEvent) renderBama(nextEvent, {nextPreview:true});
+  }catch(e){
+    // Keep the plain bye message if the lookup fails.
+  }
 }
 
 function gameCard(event){
@@ -1200,7 +1281,7 @@ async function loadSchedule(){
     if(bamaEvent){
       renderBama(bamaEvent);
     } else {
-      renderBamaBye();
+      renderBamaByeWithNext();
     }
 
     if(liveGames.length){
