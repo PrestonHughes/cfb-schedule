@@ -39,7 +39,8 @@ guide, and Alabama's roster. Built for Preston Hughes.
    sub-lanes. Alabama's game is highlighted with an accent border; a red
    "NOW" line shows if the current time falls in the displayed window.
 5. **Alabama Availability Report** — the official SEC availability report for
-   Alabama's next conference game: players grouped by status (Out, Doubtful,
+   Alabama's next conference game, with a block for Alabama and one for the
+   opponent (each edged in the team's color): players grouped by status (Out, Doubtful,
    Questionable, Probable), the report name/type (e.g. "Thursday Report ·
    Update 1"), when it was last posted (Central time, as published), and the
    opponent/kickoff/location. Shows a "no report posted" message when Alabama

@@ -422,6 +422,12 @@
   .injury-updated{ font-size:.8rem; color: var(--text-dim); }
   .injury-updated b{ color: var(--text); }
   .injury-game{ font-size:.85rem; color: var(--text-dim); margin-bottom: 14px; }
+  .injury-team{
+    border-left: 4px solid var(--card-border);
+    padding-left: 14px;
+    margin-bottom: 20px;
+  }
+  .injury-team-name{ font-weight:800; font-size:1rem; margin-bottom: 10px; }
   .injury-group{ margin-bottom: 14px; }
   .injury-group:last-child{ margin-bottom: 0; }
   .injury-status{
@@ -582,7 +588,7 @@
 
   <section id="injury-section">
     <h2 class="section-title">🩺 Alabama Availability Report</h2>
-    <div class="sub">Official SEC availability report for Alabama's next conference game</div>
+    <div class="sub">Official SEC availability report for Alabama and its opponent in the next conference game</div>
     <div id="injury-report"><div class="injury-empty">Loading availability report…</div></div>
   </section>
 
@@ -1456,9 +1462,6 @@ function renderInjuryReport(reports){
   const team = report.games.find(g => g.teamName === AVAILABILITY_TEAM);
   const opp = report.games.find(g => g !== team);
   const order = (report.statusReportOrder || Object.keys(STATUS_CLASS)).filter(s => s !== 'Available');
-  const groups = order
-    .map(status => ({ status, players: team.rows.filter(r => r.status === status).map(r => parseReportPlayer(r.name)) }))
-    .filter(g => g.players.length);
 
   const f = report.footer || {};
   const gameLine = [
@@ -1468,20 +1471,31 @@ function renderInjuryReport(reports){
     escapeHtml(f.location || '')
   ].filter(Boolean).join(' · ');
 
-  const groupsHtml = groups.length
-    ? groups.map(g => `
-        <div class="injury-group">
-          <span class="injury-status ${STATUS_CLASS[g.status] || 's-questionable'}">${escapeHtml(g.status)} (${g.players.length})</span>
-          <div class="injury-players">
-            ${g.players.map(p => `
-              <div class="injury-player">
-                <div class="roster-jersey">#${escapeHtml(p.jersey)}</div>
-                <div>${escapeHtml(p.name)}</div>
-                <div class="pos">${escapeHtml(p.pos)}</div>
-              </div>`).join('')}
-          </div>
-        </div>`).join('')
-    : '<div class="injury-empty">No Alabama players listed as out or limited — everyone is available.</div>';
+  const teamHtml = (t) => {
+    const displayName = escapeHtml(t.teamDisplayName || t.teamName);
+    const groups = order
+      .map(status => ({ status, players: t.rows.filter(r => r.status === status).map(r => parseReportPlayer(r.name)) }))
+      .filter(g => g.players.length);
+    const groupsHtml = groups.length
+      ? groups.map(g => `
+          <div class="injury-group">
+            <span class="injury-status ${STATUS_CLASS[g.status] || 's-questionable'}">${escapeHtml(g.status)} (${g.players.length})</span>
+            <div class="injury-players">
+              ${g.players.map(p => `
+                <div class="injury-player">
+                  <div class="roster-jersey">#${escapeHtml(p.jersey)}</div>
+                  <div>${escapeHtml(p.name)}</div>
+                  <div class="pos">${escapeHtml(p.pos)}</div>
+                </div>`).join('')}
+            </div>
+          </div>`).join('')
+      : `<div class="injury-empty">No ${displayName} players listed as out or limited — everyone is available.</div>`;
+    const color = /^#[0-9a-f]{3,8}$/i.test(t.teamColorHex1 || '') ? t.teamColorHex1 : 'var(--card-border)';
+    return `<div class="injury-team" style="border-left-color:${color};">
+      <div class="injury-team-name">${displayName}</div>
+      ${groupsHtml}
+    </div>`;
+  };
 
   box.innerHTML = `<div class="injury-card">
     <div class="injury-meta">
@@ -1489,7 +1503,8 @@ function renderInjuryReport(reports){
       <div class="injury-updated">Last updated <b>${fmtReportTime(report.postedTime)} ${escapeHtml(report.conferenceTimeZone || 'CT')}, ${fmtReportDate(report.publishDate)}</b></div>
     </div>
     <div class="injury-game">${gameLine}</div>
-    ${groupsHtml}
+    ${teamHtml(team)}
+    ${opp ? teamHtml(opp) : ''}
     ${sourceHtml}
   </div>`;
 }
