@@ -397,6 +397,77 @@
     color: var(--bad); background: var(--card); padding:0 4px; border-radius:4px; white-space:nowrap;
   }
 
+  /* ---------- AVAILABILITY REPORT ---------- */
+  #injury-section{ margin-bottom: 36px; }
+  .injury-card{
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+  }
+  .injury-meta{
+    display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline;
+    gap: 6px 16px;
+    padding-bottom: 12px; margin-bottom: 14px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .injury-report-name{ font-weight:800; font-size:1rem; }
+  .injury-report-type{
+    display:inline-block; margin-left:8px;
+    font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+    background: var(--pill-bg); border-radius:999px; padding:3px 9px;
+    vertical-align: middle;
+  }
+  .injury-updated{ font-size:.8rem; color: var(--text-dim); }
+  .injury-updated b{ color: var(--text); }
+  .injury-game{ font-size:.85rem; color: var(--text-dim); margin-bottom: 14px; }
+  .injury-group{ margin-bottom: 14px; }
+  .injury-group:last-child{ margin-bottom: 0; }
+  .injury-status{
+    display:inline-block;
+    font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+    color:#fff; border-radius:6px; padding:3px 8px; margin-bottom: 8px;
+  }
+  .injury-status.s-out{ background: var(--bad); }
+  .injury-status.s-doubtful{ background: #d9622b; }
+  .injury-status.s-questionable{ background: #c99a06; }
+  .injury-status.s-probable{ background: var(--good); }
+  .injury-players{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 6px;
+  }
+  .injury-player{
+    display:flex; align-items:center; gap:10px;
+    background: var(--pill-bg);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size:.88rem;
+  }
+  .injury-player .roster-jersey{ background: var(--card); font-size:.85rem; }
+  .injury-player .pos{ margin-left:auto; font-size:.75rem; font-weight:700; color: var(--text-dim); }
+  .injury-empty{ color: var(--text-dim); font-size:.9rem; }
+  .injury-source{ margin-top: 14px; font-size:.75rem; color: var(--text-dim); }
+
+  /* ---------- COLLAPSIBLE SECTION ---------- */
+  .collapsible > summary{
+    list-style:none;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .collapsible > summary::-webkit-details-marker{ display:none; }
+  .collapsible > summary .section-title{ margin: 0; }
+  .collapsible-hint{ font-size:.8rem; color: var(--text-dim); margin-top: 2px; }
+  .collapsible-caret{ color: var(--text-dim); font-size:1rem; transition: transform .15s ease; }
+  .collapsible[open] > summary{ margin-bottom: 14px; }
+  .collapsible[open] .collapsible-caret{ transform: rotate(180deg); }
+
   /* ---------- ROSTER ---------- */
   #roster-section{ margin-bottom: 36px; }
   .roster-controls{ display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
@@ -509,8 +580,20 @@
     <div id="tv-chart"></div>
   </section>
 
-  <section id="roster-section">
-    <h2 class="section-title">Alabama Roster</h2>
+  <section id="injury-section">
+    <h2 class="section-title">🩺 Alabama Availability Report</h2>
+    <div class="sub">Official SEC availability report for Alabama's next conference game</div>
+    <div id="injury-report"><div class="injury-empty">Loading availability report…</div></div>
+  </section>
+
+  <details id="roster-section" class="collapsible">
+    <summary>
+      <div>
+        <h2 class="section-title">Alabama Roster</h2>
+        <div class="collapsible-hint" id="roster-hint">Tap to expand</div>
+      </div>
+      <span class="collapsible-caret">▾</span>
+    </summary>
     <div class="sub">Tap a player for position, height, and weight</div>
     <div class="roster-controls">
       <button class="btn sort-btn active" id="sort-jersey" data-sort="jersey">Sort by Number</button>
@@ -522,9 +605,9 @@
       <button class="btn filter-btn" id="filter-special" data-filter="Special Teams">Special Teams</button>
     </div>
     <div class="roster-list" id="roster-list"></div>
-  </section>
+  </details>
 
-  <footer>Data via ESPN. Refresh with the Update button — this page makes no server calls of its own.</footer>
+  <footer>Data via ESPN and the SEC availability report. Refresh with the Update button — this page makes no server calls of its own.</footer>
 </main>
 
 <script>
@@ -1314,6 +1397,116 @@ async function loadSchedule(){
 document.getElementById('update-btn').addEventListener('click', loadSchedule);
 loadSchedule();
 
+// ---------- Availability report ----------
+// The SEC's official report (secsports.com/fbreports) is an embedded HD Intelligence
+// widget; this is the same public JSON endpoint that widget reads from.
+const AVAILABILITY_URL = 'https://app.hdintelligence.com/api/get-publish-public';
+const AVAILABILITY_TEAM = 'Alabama';
+const STATUS_CLASS = { 'Out': 's-out', 'Out - (1st Half)': 's-out', 'Doubtful': 's-doubtful', 'Questionable': 's-questionable', 'Probable': 's-probable' };
+
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function fetchAvailability(){
+  // Prefer the local proxy (strips the multi-MB embedded logos); fall back to direct.
+  try{
+    const res = await fetch('/api/availability');
+    if(res.ok) return await res.json();
+  }catch(e){ /* no local server — fall through */ }
+  const res = await fetch(AVAILABILITY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ sport: 'Football', organization: 'SEC', conference: 'SEC' })
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// The report's dates/times are plain strings in Central time ("2026-10-29", "19:10:00").
+function fmtReportDate(ymd){
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+}
+function fmtReportTime(hms){
+  const [h, m] = hms.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
+// "WR #4 Jeremiah Koger" -> { pos, jersey, name }
+function parseReportPlayer(raw){
+  const m = /^(\S+)\s+#(\S+)\s+(.+)$/.exec(raw || '');
+  return m ? { pos: m[1], jersey: m[2], name: m[3] } : { pos: '', jersey: '', name: raw || '' };
+}
+
+function renderInjuryReport(reports){
+  const box = document.getElementById('injury-report');
+  const sourceHtml = `<div class="injury-source">Source: <a href="https://www.secsports.com/fbreports" target="_blank" rel="noopener">SEC Student-Athlete Availability Report</a>. Initial report by 7 p.m. CT Wednesday, daily updates Thursday and Friday, final report 90 minutes before kickoff. Conference games only.</div>`;
+
+  const report = reports.find(r => (r.games || []).some(g => g.teamName === AVAILABILITY_TEAM));
+  if(!report){
+    box.innerHTML = `<div class="injury-card">
+      <div class="injury-empty">No SEC availability report is posted for Alabama right now. Reports appear by 7 p.m. CT the Wednesday before an SEC game.</div>
+      <div class="injury-updated" style="margin-top:8px;">Checked ${new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })}</div>
+      ${sourceHtml}
+    </div>`;
+    return;
+  }
+
+  const team = report.games.find(g => g.teamName === AVAILABILITY_TEAM);
+  const opp = report.games.find(g => g !== team);
+  const order = (report.statusReportOrder || Object.keys(STATUS_CLASS)).filter(s => s !== 'Available');
+  const groups = order
+    .map(status => ({ status, players: team.rows.filter(r => r.status === status).map(r => parseReportPlayer(r.name)) }))
+    .filter(g => g.players.length);
+
+  const f = report.footer || {};
+  const gameLine = [
+    opp ? `vs. ${escapeHtml(opp.teamDisplayName || opp.teamName)}` : '',
+    f.date ? fmtReportDate(f.date) : '',
+    f.time ? `${fmtReportTime(f.time)} ${escapeHtml(report.conferenceTimeZone || 'CT')}` : '',
+    escapeHtml(f.location || '')
+  ].filter(Boolean).join(' · ');
+
+  const groupsHtml = groups.length
+    ? groups.map(g => `
+        <div class="injury-group">
+          <span class="injury-status ${STATUS_CLASS[g.status] || 's-questionable'}">${escapeHtml(g.status)} (${g.players.length})</span>
+          <div class="injury-players">
+            ${g.players.map(p => `
+              <div class="injury-player">
+                <div class="roster-jersey">#${escapeHtml(p.jersey)}</div>
+                <div>${escapeHtml(p.name)}</div>
+                <div class="pos">${escapeHtml(p.pos)}</div>
+              </div>`).join('')}
+          </div>
+        </div>`).join('')
+    : '<div class="injury-empty">No Alabama players listed as out or limited — everyone is available.</div>';
+
+  box.innerHTML = `<div class="injury-card">
+    <div class="injury-meta">
+      <div class="injury-report-name">${escapeHtml(report.publishDayOfWeek || '')} Report<span class="injury-report-type">${escapeHtml(report.ReportType || '')}</span></div>
+      <div class="injury-updated">Last updated <b>${fmtReportTime(report.postedTime)} ${escapeHtml(report.conferenceTimeZone || 'CT')}, ${fmtReportDate(report.publishDate)}</b></div>
+    </div>
+    <div class="injury-game">${gameLine}</div>
+    ${groupsHtml}
+    ${sourceHtml}
+  </div>`;
+}
+
+async function loadInjuryReport(){
+  try{
+    const data = await fetchAvailability();
+    renderInjuryReport(Object.values(data || {}));
+  }catch(err){
+    document.getElementById('injury-report').innerHTML =
+      `<div class="injury-card"><div class="injury-empty">Could not load the availability report (${escapeHtml(err.message)}). Try Update again, or check <a href="https://www.secsports.com/fbreports" target="_blank" rel="noopener">secsports.com/fbreports</a>.</div></div>`;
+  }
+}
+
+document.getElementById('update-btn').addEventListener('click', loadInjuryReport);
+loadInjuryReport();
+
 // ---------- Roster ----------
 let rosterSort = 'jersey';
 let rosterFilter = 'all';
@@ -1368,6 +1561,14 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 
 renderRoster();
+
+const rosterSection = document.getElementById('roster-section');
+function updateRosterHint(){
+  document.getElementById('roster-hint').textContent =
+    `${ALABAMA_ROSTER.length} players · Tap to ${rosterSection.open ? 'collapse' : 'expand'}`;
+}
+rosterSection.addEventListener('toggle', updateRosterHint);
+updateRosterHint();
 </script>
 
 </body>

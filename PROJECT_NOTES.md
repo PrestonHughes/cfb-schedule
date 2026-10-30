@@ -38,14 +38,22 @@ guide, and Alabama's roster. Built for Preston Hughes.
    at its kickoff slot. Overlapping games on the same channel stack into
    sub-lanes. Alabama's game is highlighted with an accent border; a red
    "NOW" line shows if the current time falls in the displayed window.
-5. **Alabama Roster** — full 128-player roster at the bottom. Collapsed rows
+5. **Alabama Availability Report** — the official SEC availability report for
+   Alabama's next conference game: players grouped by status (Out, Doubtful,
+   Questionable, Probable), the report name/type (e.g. "Thursday Report ·
+   Update 1"), when it was last posted (Central time, as published), and the
+   opponent/kickoff/location. Shows a "no report posted" message when Alabama
+   isn't in the current report (bye weeks, non-conference games, or before
+   Wednesday's initial report). Re-fetched by the Update button.
+6. **Alabama Roster** — inside a collapsible `<details>` panel that starts
+   closed (header shows "128 players · Tap to expand"). Collapsed rows
    show jersey # and name; click/tap a row to expand and show position,
    class year (FR/SO/JR/SR), height, and weight. Two sort buttons: by
    jersey number or by name. Four filter buttons (All/Offense/Defense/
    Special Teams) filter by position group, derived from each player's
    `position` via the `POSITION_GROUP` map (matches ESPN's own Offense/
    Defense/Special Teams roster groupings).
-6. **Header controls** — Update button (re-fetches schedule data), dark/light
+7. **Header controls** — Update button (re-fetches schedule data), dark/light
    theme toggle (persisted in `localStorage`).
 
 ## Data sources
@@ -72,6 +80,21 @@ guide, and Alabama's roster. Built for Preston Hughes.
   so this deliberately does NOT re-fetch live. If you ever need to refresh
   it (offseason, transfer portal changes, etc.), that page embeds the data
   as JSON at `window.__espnfitt__.page.content.roster.groups[].athletes[]`.
+- **SEC availability reports:** the official page is
+  https://www.secsports.com/fbreports, which just embeds an iframe from
+  HD Intelligence (`app.hdintelligence.com/?source=SEC&sport=Football&conf=SEC&type=report`).
+  That widget reads a public, undocumented JSON endpoint:
+  `POST https://app.hdintelligence.com/api/get-publish-public` with body
+  `{"sport":"Football","organization":"SEC","conference":"SEC"}`. CORS is
+  open, so the browser can call it directly. The response is an object of
+  game reports (current week only); each has `ReportType`, `publishDate`,
+  `publishDayOfWeek`, `postedTime` (Central time), `footer` (game
+  date/time/location), and `games[]` (one per team: `teamName`, `rows[]` of
+  `{name: "WR #4 First Last", status}`). **Gotcha:** the raw response is
+  ~7 MB because every logo/venue image is inlined as base64; `server.js`
+  proxies it at `/api/availability` and strips those (~100 KB), and the page
+  prefers that proxy and falls back to the direct call (GitHub Pages /
+  `file://`). See `fetchAvailability` / `renderInjuryReport`.
 - **Game page links:** each event's own `links` array from the scoreboard
   API (`gameLink()` helper), falling back to constructing
   `https://www.espn.com/college-football/game/_/gameId/{id}` if absent.
@@ -165,6 +188,11 @@ GitHub Pages, just not implemented yet.
   ESPN API proxy). Not needed for GitHub Pages.
 
 ## Recent history (most recent first)
+
+- Added the Alabama Availability Report section (between the TV guide and
+  the roster), sourced from the SEC's official report feed, with a
+  `/api/availability` proxy in `server.js`. Moved the roster into a
+  collapsible panel that starts closed.
 
 - Added "final" styling to "Other Games of Interest" cards: finished games
   show a green FINAL badge, final score, "Final (Weekday, Mon D)" instead

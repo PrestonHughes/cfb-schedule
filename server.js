@@ -17,6 +17,8 @@ const MIME = {
 };
 
 const ESPN_SCOREBOARD_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard';
+// Public endpoint behind the SEC's availability report widget (secsports.com/fbreports).
+const AVAILABILITY_URL = 'https://app.hdintelligence.com/api/get-publish-public';
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
@@ -56,6 +58,30 @@ const server = http.createServer(async (req, res) => {
     } catch (err) {
       res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: 'Failed to reach ESPN', detail: String(err) }));
+    }
+    return;
+  }
+
+  if (url.pathname === '/api/availability') {
+    try {
+      const upstream = await fetch(AVAILABILITY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ sport: 'Football', organization: 'SEC', conference: 'SEC' })
+      });
+      const body = await upstream.text();
+      // The upstream payload embeds every logo/venue image as base64 (~7 MB); drop them.
+      const slim = upstream.ok
+        ? JSON.stringify(JSON.parse(body, (k, v) => (typeof v === 'string' && v.startsWith('data:')) ? null : v))
+        : body;
+      res.writeHead(upstream.status, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store'
+      });
+      res.end(slim);
+    } catch (err) {
+      res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: 'Failed to reach SEC availability report', detail: String(err) }));
     }
     return;
   }
