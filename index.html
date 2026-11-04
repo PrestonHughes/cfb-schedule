@@ -1471,6 +1471,17 @@ function renderInjuryReport(reports){
     escapeHtml(f.location || '')
   ].filter(Boolean).join(' · ');
 
+  // Before the first report the SEC already lists the game, with ReportType "Report Pending",
+  // empty rows, and the scheduled publish date/time standing in for the posted ones.
+  if(/pending/i.test(report.ReportType || '') && report.games.every(g => !(g.rows || []).length)){
+    box.innerHTML = `<div class="injury-card">
+      <div class="injury-game">${gameLine}</div>
+      <div class="injury-empty">No availability report has been released for this game yet. First report expected ${fmtReportDate(report.publishDate)}.</div>
+      ${sourceHtml}
+    </div>`;
+    return;
+  }
+
   const teamHtml = (t) => {
     const displayName = escapeHtml(t.teamDisplayName || t.teamName);
     const groups = order

@@ -91,7 +91,10 @@ guide, and Alabama's roster. Built for Preston Hughes.
   game reports (current week only); each has `ReportType`, `publishDate`,
   `publishDayOfWeek`, `postedTime` (Central time), `footer` (game
   date/time/location), and `games[]` (one per team: `teamName`, `rows[]` of
-  `{name: "WR #4 First Last", status}`). **Gotcha:** the raw response is
+  `{name: "WR #4 First Last", status}`). Before the first report of the week
+  the game is already listed with `ReportType: "Report Pending"`, empty
+  `rows`, and the scheduled time in `publishDate`/`postedTime`; the page shows
+  a "not released yet" message for that case. **Gotcha:** the raw response is
   ~7 MB because every logo/venue image is inlined as base64; `server.js`
   proxies it at `/api/availability` and strips those (~100 KB), and the page
   prefers that proxy and falls back to the direct call (GitHub Pages /
